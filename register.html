@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Ordo POS — Create Account</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -17,8 +17,8 @@ body::before{content:'';position:fixed;inset:0;opacity:.03;pointer-events:none;
 
 /* Nav */
 nav{padding:18px 5%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.04);}
-.logo{font-family:'Instrument Serif',serif;font-size:20px;color:var(--gold2);text-decoration:none;letter-spacing:-0.3px;}
-.nav-link{font-size:13px;color:var(--t2);text-decoration:none;transition:color 0.2s;}
+.logo{font-family:'Instrument Serif',serif;font-size:20px;color:var(--gold2);text-decoration:none;}
+.nav-link{font-size:13px;color:var(--t2);text-decoration:none;}
 .nav-link:hover{color:var(--t1);}
 
 /* Main */
@@ -72,19 +72,13 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 
 /* Spinner */
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* small responsive touch */
-@media (max-width: 480px) {
-  .form-card { padding: 20px; }
-  .plan-select { grid-template-columns: 1fr; }
-}
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="ordo_pos.html" class="logo">Ordo</a>
-  <a href="ordo_pos.html" class="nav-link">← Back to POS Dashboard</a>
+  <a href="landing.html" class="logo">Ordo</a>
+  <a href="landing.html" class="nav-link">← Back to home</a>
 </nav>
 
 <main>
@@ -160,7 +154,7 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 
       <button class="submit-btn" id="log-btn" onclick="login()">Sign In →</button>
       <div class="or-divider">or</div>
       <div style="text-align:center">
-        <a href="#" onclick="resetPassword(event)" style="font-size:13px;color:var(--t2);text-decoration:none;cursor:pointer;">Forgot password?</a>
+        <a href="#" onclick="resetPassword()" style="font-size:13px;color:var(--t2);text-decoration:none;">Forgot password?</a>
       </div>
     </div>
 
@@ -175,154 +169,174 @@ const FIREBASE_CONFIG = {
   projectId: "pos-ordo",
   storageBucket: "pos-ordo.firebasestorage.app",
   messagingSenderId: "575923763514",
-  appId: "1:575923763514:web:f81283d99aafd2460f3803"
+  appId: "1:575923763514:web:f81283d99aafd2460f3803",
+  measurementId: "G-PND9FKHRVF"
 };
 
-// Init Firebase
-if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-
+// Initialize Firebase
+firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const APP_FILE = "ordo_pos.html";
-let selectedPlan = "trial";
+// Trial length in days
+const TRIAL_DAYS = 14;
+// App file name (update as needed)
+const APP_FILE = 'ordo_saas.html';
 
-// UI helpers
-function showError(msg){
-  const el=document.getElementById('msg-error');
-  document.getElementById('msg-error-text').textContent=msg;
-  el.style.display='flex';
-  document.getElementById('msg-success').style.display='none';
-}
+// ── If already logged in, redirect to app ────────
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    // Check tenant status
+    const snap = await db.collection('tenants').doc(user.uid).get();
+    if (snap.exists) {
+      window.location.href = APP_FILE;
+    }
+  }
+});
 
-function showSuccess(msg){
-  const el=document.getElementById('msg-success');
-  document.getElementById('msg-success-text').textContent=msg;
-  el.style.display='flex';
-  document.getElementById('msg-error').style.display='none';
-}
+// ── UI helpers ─────────────────────────────────────
+let selectedPlan = 'trial';
 
-function clearMsgs(){
-  document.getElementById('msg-error').style.display='none';
-  document.getElementById('msg-success').style.display='none';
-}
-
-function setLoading(btnId, loading, text){
-  const btn=document.getElementById(btnId);
-  btn.disabled=loading;
-  btn.innerHTML = loading ? `<span class="spin"></span> Processing...` : text;
-}
-
-// REGISTER FIXED
-async function register(){
+function switchTab(tab) {
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('form-login').style.display    = tab === 'login'    ? '' : 'none';
   clearMsgs();
+}
 
+function selectPlan(el, plan) {
+  document.querySelectorAll('.plan-opt').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPlan = plan;
+  const btn = document.getElementById('reg-btn');
+  btn.textContent = plan === 'trial' ? 'Start Free Trial →' : 'Create Account →';
+}
+
+function showError(msg) {
+  const el = document.getElementById('msg-error');
+  document.getElementById('msg-error-text').textContent = msg;
+  el.style.display = 'flex';
+  document.getElementById('msg-success').style.display = 'none';
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('msg-success');
+  document.getElementById('msg-success-text').textContent = msg;
+  el.style.display = 'flex';
+  document.getElementById('msg-error').style.display = 'none';
+}
+
+function clearMsgs() {
+  document.getElementById('msg-error').style.display = 'none';
+  document.getElementById('msg-success').style.display = 'none';
+}
+
+function setLoading(btnId, loading, text) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? `<span class="spin"></span>`
+    : text;
+}
+
+// ── Register ───────────────────────────────────────
+async function register() {
+  clearMsgs();
   const restName = document.getElementById('reg-rest').value.trim();
   const ownerName = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-pass').value;
+  const email     = document.getElementById('reg-email').value.trim();
+  const password  = document.getElementById('reg-pass').value;
 
-  if (!restName || !ownerName || !email || password.length < 8){
-    showError("Please fill all fields correctly.");
-    return;
-  }
+  if (!restName)           { showError('Please enter your restaurant name.'); return; }
+  if (!ownerName)          { showError('Please enter your name.'); return; }
+  if (!email)              { showError('Please enter your email.'); return; }
+  if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
 
-  setLoading('reg-btn', true, 'Start Free Trial →');
+  setLoading('reg-btn', true, '');
 
-  try{
+  try {
+    // Create Firebase Auth account
     const cred = await auth.createUserWithEmailAndPassword(email, password);
-    const uid = cred.user.uid;
+    const uid  = cred.user.uid;
 
-    const now = new Date();
-    const trialEnd = new Date(now.getTime() + 14*86400000);
+    // Calculate trial end date
+    const now       = new Date();
+    const trialEnd  = new Date(now.getTime() + TRIAL_DAYS * 86400000);
 
+    // Save tenant profile in Firestore
     await db.collection('tenants').doc(uid).set({
       uid,
       ownerName,
-      restaurantName: restName,
+      restaurantName:   restName,
+      restaurantNameAr: '',
       email,
-      plan: selectedPlan,
-      status: selectedPlan === 'trial' ? 'trial' : 'active',
+      plan:       selectedPlan === 'trial' ? 'trial' : selectedPlan,
+      status:     'trial',          // trial | active | expired | cancelled
       trialStart: now.toISOString(),
-      trialEnd: trialEnd.toISOString(),
-      createdAt: now.toISOString(),
-      role: "owner"
+      trialEnd:   trialEnd.toISOString(),
+      paidUntil:  null,
+      createdAt:  now.toISOString(),
     });
 
-    showSuccess("Account created! Redirecting...");
+    // Bootstrap the tenant's app data
+    await db.collection('tenants').doc(uid).collection('app').doc('settings').set({
+      restaurantName:   restName,
+      restaurantNameAr: '',
+      vatRate:          15,
+      currency:         'SAR',
+    });
 
-    setTimeout(()=>{
-      window.location.href = APP_FILE;
-    },1000);
+    showSuccess('Account created! Redirecting to your POS…');
+    setTimeout(() => { window.location.href = APP_FILE; }, 1500);
 
-  }catch(err){
-    let msg = err.message;
-    if (err.code === 'auth/email-already-in-use') msg = "Email already exists. Please login.";
-    if (err.code === 'auth/invalid-email') msg = "Invalid email.";
-    if (err.code === 'auth/weak-password') msg = "Password must be at least 8 characters.";
-    showError(msg);
+  } catch (err) {
+    console.error(err);
+    const msgs = {
+      'auth/email-already-in-use': 'This email is already registered. Try signing in instead.',
+      'auth/invalid-email':         'Please enter a valid email address.',
+      'auth/weak-password':         'Password is too weak. Use at least 8 characters.',
+    };
+    showError(msgs[err.code] || err.message);
     setLoading('reg-btn', false, 'Start Free Trial →');
   }
 }
 
-// LOGIN FIXED
-async function login(){
+// ── Login ──────────────────────────────────────────
+async function login() {
   clearMsgs();
-
-  const email = document.getElementById('log-email').value.trim();
+  const email    = document.getElementById('log-email').value.trim();
   const password = document.getElementById('log-pass').value;
 
-  if (!email || !password){
-    showError("Enter email and password.");
-    return;
-  }
+  if (!email || !password) { showError('Please enter your email and password.'); return; }
 
-  setLoading('log-btn', true, 'Sign In →');
+  setLoading('log-btn', true, '');
 
-  try{
-    const userCred = await auth.signInWithEmailAndPassword(email, password);
-    const uid = userCred.user.uid;
-
-    const doc = await db.collection('tenants').doc(uid).get();
-
-    if (!doc.exists){
-      showError("Account not properly setup. Please register again.");
-      await auth.signOut();
-      setLoading('log-btn', false, 'Sign In →');
-      return;
-    }
-
-    showSuccess("Login successful!");
-
-    setTimeout(()=>{
-      window.location.href = APP_FILE;
-    },800);
-
-  }catch(err){
-    let msg = "Login failed.";
-    if (err.code === 'auth/user-not-found') msg = "User not found.";
-    if (err.code === 'auth/wrong-password') msg = "Wrong password.";
-    if (err.code === 'auth/invalid-email') msg = "Invalid email.";
-    showError(msg);
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    showSuccess('Signed in! Redirecting…');
+    setTimeout(() => { window.location.href = APP_FILE; }, 1000);
+  } catch (err) {
+    const msgs = {
+      'auth/user-not-found':   'No account found with this email.',
+      'auth/wrong-password':   'Incorrect password.',
+      'auth/invalid-email':    'Please enter a valid email.',
+      'auth/too-many-requests':'Too many attempts. Please wait a moment.',
+    };
+    showError(msgs[err.code] || 'Sign in failed. Please try again.');
     setLoading('log-btn', false, 'Sign In →');
   }
 }
 
-// RESET PASSWORD
-async function resetPassword(e){
-  e.preventDefault();
+// ── Reset Password ─────────────────────────────────
+async function resetPassword() {
   const email = document.getElementById('log-email').value.trim();
-
-  if (!email){
-    showError("Enter your email first.");
-    return;
-  }
-
-  try{
+  if (!email) { showError('Enter your email address above first.'); return; }
+  try {
     await auth.sendPasswordResetEmail(email);
-    showSuccess("Reset email sent!");
-  }catch{
-    showError("Failed to send reset email.");
+    showSuccess('Password reset email sent — check your inbox.');
+  } catch(err) {
+    showError('Could not send reset email. Check the address.');
   }
 }
 </script>
