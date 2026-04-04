@@ -102,6 +102,14 @@ body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;font-
   <!-- Rendered by JS -->
 </div>
 
+<script>
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDTzLb-bqmZiNB0G0W4WTRGseMM37GUcpI",
@@ -113,8 +121,12 @@ const firebaseConfig = {
   measurementId: "G-PND9FKHRVF"
 };
 
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 // ── Your super-admin email ──────────────────────
-const ADMIN_EMAIL = "yshoeb52@gmail.com"; // CHANGE THIS
+const ADMIN_EMAIL = "mwz0F01sufMu4AZ7OblEBmSLlgz1"; // CHANGE THIS
 
 firebase.initializeApp(FIREBASE_CONFIG);
 const auth = firebase.auth();
@@ -223,9 +235,6 @@ function renderDashboard() {
         <button class="nav-item ${activeTab==='tenants'?'active':''}" onclick="setTab('tenants')"><i class="fa fa-building"></i> Restaurants</button>
         <button class="nav-item ${activeTab==='revenue'?'active':''}" onclick="setTab('revenue')"><i class="fa fa-coins"></i> Revenue</button>
         <button class="nav-item ${activeTab==='expiring'?'active':''}" onclick="setTab('expiring')"><i class="fa fa-clock"></i> Expiring Soon</button>
-        <div style="height:1px;background:rgba(255,255,255,.05);margin:10px 0;"></div>
-        <button class="nav-item ${activeTab==='licenses'?'active':''}" onclick="setTab('licenses')"><i class="fa fa-key"></i> License Keys</button>
-        <button class="nav-item ${activeTab==='version'?'active':''}" onclick="setTab('version')"><i class="fa fa-rocket"></i> Version Manager</button>
       </div>
 
       <div class="main" id="tab-content">
@@ -233,8 +242,6 @@ function renderDashboard() {
         ${activeTab === 'tenants'   ? renderTenants(filtered) : ''}
         ${activeTab === 'revenue'   ? renderRevenue(tenants) : ''}
         ${activeTab === 'expiring'  ? renderExpiring(tenants) : ''}
-        ${activeTab === 'licenses'  ? '<div id="licenses-tab">Loading…</div>' : ''}
-        ${activeTab === 'version'   ? '<div id="version-tab">Loading…</div>' : ''}
       </div>
     </div>`;
 }
@@ -385,152 +392,6 @@ function tenantRow(t, full = false) {
 function setTab(tab) {
   activeTab = tab;
   renderDashboard();
-  if (tab === 'licenses') setTimeout(renderLicensesTab, 50);
-  if (tab === 'version')  setTimeout(renderVersionTab, 50);
-}
-
-// ── License Keys Tab ─────────────────────────────
-async function renderLicensesTab() {
-  const el = document.getElementById('licenses-tab');
-  if (!el) return;
-  el.innerHTML = `<div style="color:var(--t3);font-size:13px;padding:20px;"><i class="fa fa-spinner" style="animation:spin 1s linear infinite;"></i> Loading…</div>`;
-
-  const snap = await db.collection('licenses').orderBy('createdAt','desc').limit(100).get();
-  const licenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-  el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <div class="sec-hdr" style="margin:0">${licenses.length} License Keys</div>
-      <button class="btn btn-gold btn-sm" onclick="generateLicenseModal()"><i class="fa fa-plus"></i> Generate Key</button>
-    </div>
-    <div class="card" style="padding:0;overflow:hidden;">
-      <table class="tbl">
-        <thead><tr><th>Key</th><th>Email</th><th>Plan</th><th>Status</th><th>Expires</th><th>Actions</th></tr></thead>
-        <tbody>
-          ${licenses.map(l => `
-            <tr>
-              <td style="font-family:monospace;font-size:12px;color:var(--gold2);letter-spacing:1px">${l.id}</td>
-              <td style="font-size:12px;color:var(--t2)">${l.email||'—'}</td>
-              <td><span class="badge badge-gold" style="font-size:10px">${l.plan||'—'}</span></td>
-              <td><span class="badge ${l.status==='active'?'badge-green':l.status==='suspended'?'badge-red':'badge-yellow'}" style="font-size:10px">${l.status||'—'}</span></td>
-              <td style="font-size:11px;color:var(--t3)">${l.expiresAt?new Date(l.expiresAt).toLocaleDateString():'Never'}</td>
-              <td style="display:flex;gap:5px;">
-                <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('${l.id}').then(()=>alert('Copied!'))"><i class="fa fa-copy"></i></button>
-                <button class="btn btn-danger btn-sm" onclick="suspendLicense('${l.id}')"><i class="fa fa-ban"></i></button>
-              </td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
-}
-
-function generateLicenseModal() {
-  document.getElementById('app').insertAdjacentHTML('beforeend', `
-    <div class="overlay" id="gen-modal" onclick="if(event.target.id==='gen-modal')this.remove()">
-      <div class="modal" style="max-width:400px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:18px;">
-          <h3>Generate License Key</h3>
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('gen-modal').remove()"><i class="fa fa-times"></i></button>
-        </div>
-        <div style="margin-bottom:12px;"><label style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Customer Email</label>
-        <input class="input" id="gen-email" placeholder="customer@restaurant.com" type="email"/></div>
-        <div style="margin-bottom:12px;"><label style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Plan</label>
-        <select class="input" id="gen-plan"><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="lifetime">Lifetime</option></select></div>
-        <div style="margin-bottom:16px;"><label style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Expires (leave blank = never)</label>
-        <input class="input" id="gen-expires" type="date"/></div>
-        <button class="btn btn-gold" style="width:100%;justify-content:center;" onclick="doGenerateLicense()"><i class="fa fa-key"></i> Generate & Save</button>
-        <div id="gen-result" style="margin-top:14px;font-family:monospace;font-size:16px;color:var(--gold2);text-align:center;letter-spacing:2px;word-break:break-all;"></div>
-      </div>
-    </div>`);
-}
-
-async function doGenerateLicense() {
-  const email   = document.getElementById('gen-email').value.trim();
-  const plan    = document.getElementById('gen-plan').value;
-  const expires = document.getElementById('gen-expires').value;
-  if (!email) { alert('Email required'); return; }
-
-  // Generate key: XXXX-XXXX-XXXX-XXXX
-  const part = () => Math.random().toString(36).substring(2,6).toUpperCase();
-  const key = `${part()}-${part()}-${part()}-${part()}`;
-
-  const licData = {
-    email, plan, status: 'active',
-    createdAt:  new Date().toISOString(),
-    expiresAt:  expires ? new Date(expires).toISOString() : null,
-    createdBy:  currentAdmin?.email || 'admin',
-  };
-
-  await db.collection('licenses').doc(key).set(licData);
-
-  // Also link to tenant if found
-  const tenantSnap = await db.collection('tenants').where('email','==',email).limit(1).get();
-  if (!tenantSnap.empty) {
-    await tenantSnap.docs[0].ref.update({ licenseKey: key });
-  }
-
-  document.getElementById('gen-result').innerHTML = `✓ Key generated:<br/><strong>${key}</strong><br/><button onclick="navigator.clipboard.writeText('${key}')" style="margin-top:8px;font-size:11px;background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--t3);">Copy</button>`;
-  alert(`License key generated!\n\n${key}\n\nSend this + their email to the customer.`);
-}
-
-async function suspendLicense(key) {
-  if (!confirm(`Suspend license key ${key}?`)) return;
-  await db.collection('licenses').doc(key).update({ status: 'suspended' });
-  renderLicensesTab();
-}
-
-// ── Version Manager Tab ──────────────────────────
-async function renderVersionTab() {
-  const el = document.getElementById('version-tab');
-  if (!el) return;
-  const snap = await db.collection('app').doc('version').get();
-  const v = snap.exists ? snap.data() : {};
-
-  el.innerHTML = `
-    <div class="sec-hdr">🚀 Version Manager</div>
-    <div class="card" style="margin-bottom:20px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-        <div><label style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Current Version</label>
-        <input class="input" id="v-current" value="${v.current||''}" placeholder="e.g. 2.1"/></div>
-        <div><label style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Minimum Version (force update)</label>
-        <input class="input" id="v-min" value="${v.minVersion||''}" placeholder="e.g. 2.0"/></div>
-      </div>
-      <div style="margin-bottom:14px;"><label style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Download URL</label>
-      <input class="input" id="v-url" value="${v.downloadUrl||''}" placeholder="https://your-host.com/ordo_v2.1.html"/></div>
-      <div style="margin-bottom:14px;"><label style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Release Notes (shown to users)</label>
-      <textarea class="input" id="v-notes" rows="4" placeholder="What's new in this version…">${v.releaseNotes||''}</textarea></div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <button class="btn btn-gold" onclick="saveVersion()"><i class="fa fa-rocket"></i> Publish Update</button>
-        <span style="font-size:12px;color:var(--t3);">Last published: ${v.releasedAt?new Date(v.releasedAt).toLocaleString():'Never'}</span>
-      </div>
-    </div>
-    <div class="card" style="background:rgba(59,130,246,.05);border-color:rgba(59,130,246,.2);">
-      <div style="font-size:12px;color:var(--blue);line-height:1.8;">
-        <strong style="display:block;margin-bottom:6px;">📋 How updates work:</strong>
-        1. Upload your new <code>ordo_licensed.html</code> file somewhere (Firebase Storage, GitHub, your server)<br/>
-        2. Paste the direct download URL above<br/>
-        3. Set the version number and release notes<br/>
-        4. Click Publish — all licensed apps will show an update banner immediately<br/>
-        5. Set "Minimum Version" to force users to update before they can continue
-      </div>
-    </div>`;
-}
-
-async function saveVersion() {
-  const current    = document.getElementById('v-current').value.trim();
-  const minVersion = document.getElementById('v-min').value.trim();
-  const downloadUrl= document.getElementById('v-url').value.trim();
-  const releaseNotes=document.getElementById('v-notes').value.trim();
-  if (!current) { alert('Version number required'); return; }
-  if (!downloadUrl) { alert('Download URL required'); return; }
-  await db.collection('app').doc('version').set({
-    current, minVersion: minVersion||null,
-    downloadUrl, releaseNotes,
-    releasedAt: new Date().toISOString(),
-    publishedBy: currentAdmin?.email||'admin'
-  });
-  alert(`✅ Version ${current} published!\nAll active apps will show the update banner.`);
-  renderVersionTab();
 }
 
 async function activateTenant(uid, plan) {
