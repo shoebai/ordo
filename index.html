@@ -17,8 +17,6 @@
 }
 html{scroll-behavior:smooth;}
 body{background:var(--ink);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden;}
-
-/* ── Noise texture overlay ── */
 body::before{content:'';position:fixed;inset:0;opacity:.035;pointer-events:none;z-index:9999;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");}
 
@@ -30,6 +28,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 6%;display:flex
 .nav-links{display:flex;gap:28px;align-items:center;}
 .nav-links a{color:var(--t2);text-decoration:none;font-size:13px;font-weight:500;transition:.2s;letter-spacing:.3px;}
 .nav-links a:hover{color:var(--t1);}
+.nav-signin{background:transparent;color:var(--t2);padding:9px 18px;border-radius:6px;font-weight:500;font-size:13px;text-decoration:none;transition:.2s;border:1px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.nav-signin:hover{color:var(--gold2);border-color:var(--gold);}
 .nav-cta{background:var(--gold);color:var(--ink);padding:9px 20px;border-radius:6px;font-weight:600;font-size:13px;text-decoration:none;transition:.2s;}
 .nav-cta:hover{background:var(--gold2);transform:translateY(-1px);}
 
@@ -148,6 +148,179 @@ footer{padding:40px 6%;border-top:1px solid var(--border);display:flex;justify-c
 .footer-links a:hover{color:var(--t2);}
 .footer-copy{font-size:12px;color:var(--t3);}
 
+/* ══════════════════════════════════════════
+   SIGN-IN MODAL
+══════════════════════════════════════════ */
+.modal-backdrop{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(5,5,8,.88);
+  backdrop-filter:blur(16px);
+  z-index:9000;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  animation:fadeInBd .2s ease;
+}
+.modal-backdrop.open{display:flex;}
+@keyframes fadeInBd{from{opacity:0}to{opacity:1}}
+
+.signin-modal{
+  background:var(--ink2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  width:100%;max-width:420px;
+  padding:38px 36px 32px;
+  position:relative;
+  animation:slideUpM .25s ease;
+  box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(201,168,76,.08);
+}
+@keyframes slideUpM{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  width:32px;height:32px;border-radius:8px;
+  background:transparent;border:1px solid rgba(255,255,255,.08);
+  color:var(--t2);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;font-family:'DM Sans',sans-serif;
+}
+.modal-close:hover{background:rgba(255,255,255,.06);color:var(--t1);}
+
+.modal-logo{
+  font-family:'Instrument Serif',serif;
+  font-size:28px;color:var(--gold2);
+  letter-spacing:-.5px;margin-bottom:4px;
+}
+.modal-tagline{font-size:12px;color:var(--t3);margin-bottom:28px;}
+
+.modal-tabs{
+  display:flex;gap:0;
+  background:rgba(255,255,255,.04);
+  border-radius:8px;padding:4px;
+  margin-bottom:28px;
+}
+.modal-tab{
+  flex:1;padding:8px;border-radius:6px;
+  background:transparent;border:none;
+  color:var(--t2);font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:500;cursor:pointer;
+  transition:.15s;
+}
+.modal-tab.active{
+  background:var(--ink3);color:var(--cream);
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+
+.modal-form-panel{display:none;}
+.modal-form-panel.active{display:block;}
+
+.form-group{margin-bottom:16px;}
+.form-label{
+  display:block;font-size:11px;font-weight:600;
+  color:var(--t2);letter-spacing:.6px;text-transform:uppercase;
+  margin-bottom:7px;
+}
+.form-input{
+  width:100%;padding:11px 14px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;
+  color:var(--cream);font-family:'DM Sans',sans-serif;
+  font-size:14px;outline:none;
+  transition:.2s;
+}
+.form-input::placeholder{color:var(--t3);}
+.form-input:focus{
+  border-color:rgba(201,168,76,.5);
+  background:rgba(201,168,76,.04);
+  box-shadow:0 0 0 3px rgba(201,168,76,.08);
+}
+.form-input.error{
+  border-color:rgba(239,68,68,.5);
+  background:rgba(239,68,68,.04);
+}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.forgot-link{
+  display:block;text-align:right;
+  font-size:12px;color:var(--t3);
+  text-decoration:none;margin-top:6px;
+  transition:.15s;
+}
+.forgot-link:hover{color:var(--gold);}
+
+.modal-submit{
+  width:100%;padding:13px;
+  background:var(--gold);color:var(--ink);
+  border:none;border-radius:8px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;
+  cursor:pointer;transition:.2s;
+  margin-top:6px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.modal-submit:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,.3);}
+.modal-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.modal-divider{
+  display:flex;align-items:center;gap:12px;
+  margin:20px 0;color:var(--t3);font-size:12px;
+}
+.modal-divider::before,.modal-divider::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+.oauth-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.oauth-btn{
+  padding:10px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  color:var(--t2);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;
+  cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:7px;transition:.15s;
+}
+.oauth-btn:hover{background:rgba(255,255,255,.07);color:var(--t1);border-color:rgba(255,255,255,.15);}
+.oauth-icon{width:16px;height:16px;flex-shrink:0;}
+
+.modal-error{
+  display:none;
+  background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.25);
+  border-radius:7px;padding:9px 12px;
+  color:#fca5a5;font-size:12px;
+  margin-bottom:14px;
+}
+.modal-error.show{display:block;}
+
+.modal-success{
+  display:none;text-align:center;
+  padding:32px 20px;
+}
+.modal-success.show{display:block;}
+.modal-success-icon{font-size:48px;margin-bottom:16px;}
+.modal-success-title{font-family:'Instrument Serif',serif;font-size:24px;color:var(--cream);margin-bottom:8px;}
+.modal-success-sub{font-size:13px;color:var(--t2);}
+
+.modal-footer-note{
+  text-align:center;margin-top:20px;
+  font-size:12px;color:var(--t3);line-height:1.6;
+}
+.modal-footer-note a{color:var(--gold);text-decoration:none;}
+.modal-footer-note a:hover{color:var(--gold2);}
+
+/* ── Spinner ── */
+.spinner{
+  width:16px;height:16px;border-radius:50%;
+  border:2px solid rgba(10,10,15,.3);
+  border-top-color:var(--ink);
+  animation:spin .7s linear infinite;
+  display:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* ── Animations ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes float{0%,100%{transform:perspective(1200px) rotateY(-8deg) rotateX(3deg) translateY(0)} 50%{transform:perspective(1200px) rotateY(-8deg) rotateX(3deg) translateY(-12px)}}
@@ -158,11 +331,127 @@ h1{animation-delay:.2s}
 .hero-actions{animation-delay:.4s}
 .hero-trial{animation-delay:.5s}
 .hero-visual{animation:float 6s ease-in-out infinite;}
+
 @media(max-width:900px){.hero-visual{display:none;}.hero-content{max-width:100%}}
-@media(max-width:600px){nav .nav-links{display:none;} h1{font-size:42px;}}
+@media(max-width:600px){
+  nav .nav-links a:not(.nav-cta):not(.nav-signin){display:none;}
+  h1{font-size:42px;}
+  .signin-modal{padding:28px 20px 24px;}
+  .form-row{grid-template-columns:1fr;}
+  .oauth-row{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
+
+<!-- ══════════════════ SIGN-IN MODAL ══════════════════ -->
+<div class="modal-backdrop" id="signinBackdrop" onclick="if(event.target===this)closeModal()">
+  <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Ordo">
+    <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+
+    <div class="modal-logo">Ordo</div>
+    <div class="modal-tagline">Restaurant Management System</div>
+
+    <!-- Tabs -->
+    <div class="modal-tabs" role="tablist">
+      <button class="modal-tab active" id="tab-signin" onclick="switchTab('signin')" role="tab">Sign In</button>
+      <button class="modal-tab" id="tab-register" onclick="switchTab('register')" role="tab">Create Account</button>
+    </div>
+
+    <!-- Error banner -->
+    <div class="modal-error" id="modalError"></div>
+
+    <!-- ── SIGN IN PANEL ── -->
+    <div class="modal-form-panel active" id="panel-signin">
+      <div class="form-group">
+        <label class="form-label" for="si-email">Email or Username</label>
+        <input class="form-input" id="si-email" type="text" placeholder="you@restaurant.com" autocomplete="username"/>
+      </div>
+      <div class="form-group" style="margin-bottom:4px;">
+        <label class="form-label" for="si-pass">Password</label>
+        <input class="form-input" id="si-pass" type="password" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')submitSignIn()"/>
+        <a href="forgot.html" class="forgot-link">Forgot password?</a>
+      </div>
+      <button class="modal-submit" onclick="submitSignIn()" id="signinBtn">
+        <span id="signinBtnText">Sign In →</span>
+        <div class="spinner" id="signinSpinner"></div>
+      </button>
+
+      <div class="modal-divider">or continue with</div>
+      <div class="oauth-row">
+        <button class="oauth-btn" onclick="oauthLogin('google')">
+          <svg class="oauth-icon" viewBox="0 0 24 24" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Google
+        </button>
+        <button class="oauth-btn" onclick="oauthLogin('microsoft')">
+          <svg class="oauth-icon" viewBox="0 0 24 24" fill="none">
+            <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+            <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+            <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+          </svg>
+          Microsoft
+        </button>
+      </div>
+
+      <p class="modal-footer-note">
+        Don't have an account? <a href="#" onclick="switchTab('register');return false;">Create one free →</a>
+      </p>
+    </div>
+
+    <!-- ── REGISTER PANEL ── -->
+    <div class="modal-form-panel" id="panel-register">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="reg-fname">First Name</label>
+          <input class="form-input" id="reg-fname" type="text" placeholder="Ahmed" autocomplete="given-name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reg-lname">Last Name</label>
+          <input class="form-input" id="reg-lname" type="text" placeholder="Al-Rashidi" autocomplete="family-name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-rest">Restaurant Name</label>
+        <input class="form-input" id="reg-rest" type="text" placeholder="Mashawi Al-Nakheel"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-email">Email</label>
+        <input class="form-input" id="reg-email" type="email" placeholder="you@restaurant.com" autocomplete="email"/>
+      </div>
+      <div class="form-group" style="margin-bottom:4px;">
+        <label class="form-label" for="reg-pass">Password</label>
+        <input class="form-input" id="reg-pass" type="password" placeholder="Min. 8 characters" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter')submitRegister()"/>
+      </div>
+      <div id="passStrengthBar" style="height:3px;border-radius:99px;background:rgba(255,255,255,.08);margin:8px 0 14px;overflow:hidden;">
+        <div id="passStrengthFill" style="height:100%;width:0;border-radius:99px;transition:width .3s,background .3s;"></div>
+      </div>
+      <button class="modal-submit" onclick="submitRegister()" id="registerBtn">
+        <span id="registerBtnText">Start 14-Day Free Trial →</span>
+        <div class="spinner" id="registerSpinner"></div>
+      </button>
+      <p class="modal-footer-note" style="margin-top:14px;">
+        By signing up you agree to our <a href="terms.html">Terms</a> &amp; <a href="privacy.html">Privacy Policy</a>.<br>
+        Already have an account? <a href="#" onclick="switchTab('signin');return false;">Sign in →</a>
+      </p>
+    </div>
+
+    <!-- Success state -->
+    <div class="modal-success" id="modalSuccess">
+      <div class="modal-success-icon">✦</div>
+      <div class="modal-success-title" id="successTitle">Welcome back</div>
+      <div class="modal-success-sub" id="successSub">Redirecting to your dashboard…</div>
+    </div>
+
+  </div>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -171,7 +460,8 @@ h1{animation-delay:.2s}
     <a href="#features">Features</a>
     <a href="#pricing">Pricing</a>
     <a href="#how">How it works</a>
-    <a href="register.html" class="nav-cta">Start Free Trial →</a>
+    <button class="nav-signin" onclick="openModal('signin')">Sign In</button>
+    <a href="#" class="nav-cta" onclick="openModal('register');return false;">Start Free Trial →</a>
   </div>
 </nav>
 
@@ -184,8 +474,8 @@ h1{animation-delay:.2s}
     <h1>The POS that runs as fast as your <em>kitchen</em></h1>
     <p class="hero-sub">Ordo is a complete restaurant management system — orders, tables, kitchen, reports, and QR menus — all in one tab.</p>
     <div class="hero-actions">
-      <a href="register.html" class="btn-primary">Start 14-Day Free Trial <span>→</span></a>
-      <a href="#features" class="btn-secondary">See features</a>
+      <a href="#" class="btn-primary" onclick="openModal('register');return false;">Start 14-Day Free Trial <span>→</span></a>
+      <a href="#" class="btn-secondary" onclick="openModal('signin');return false;">Sign In</a>
     </div>
     <p class="hero-trial"><strong>No credit card required.</strong> Full access for 14 days.</p>
   </div>
@@ -277,8 +567,6 @@ h1{animation-delay:.2s}
     <p class="section-sub" style="margin:0 auto">All plans include the full system. Pay only when you're ready.</p>
   </div>
   <div class="plans">
-
-    <!-- Free Trial -->
     <div class="plan">
       <div class="plan-name">Free Trial</div>
       <div class="plan-price"><sup>SAR</sup>0</div>
@@ -292,11 +580,9 @@ h1{animation-delay:.2s}
         <li class="no">Priority support</li>
         <li class="no">Custom branding</li>
       </ul>
-      <a href="register.html" class="plan-btn plan-btn-outline">Start Free Trial</a>
+      <a href="#" class="plan-btn plan-btn-outline" onclick="openModal('register');return false;">Start Free Trial</a>
       <p class="plan-trial">No card needed. Cancel anytime.</p>
     </div>
-
-    <!-- Monthly -->
     <div class="plan featured">
       <div class="plan-badge">Most Popular</div>
       <div class="plan-name">Monthly</div>
@@ -311,11 +597,9 @@ h1{animation-delay:.2s}
         <li>Priority support</li>
         <li class="no">Custom branding</li>
       </ul>
-      <a href="register.html" class="plan-btn plan-btn-gold">Get Started →</a>
+      <a href="#" class="plan-btn plan-btn-gold" onclick="openModal('register');return false;">Get Started →</a>
       <p class="plan-trial">Starts after your free trial ends.</p>
     </div>
-
-    <!-- Annual -->
     <div class="plan">
       <div class="plan-name">Annual</div>
       <div class="plan-price"><sup>SAR</sup>149<sub>/mo</sub></div>
@@ -329,11 +613,9 @@ h1{animation-delay:.2s}
         <li>Priority support</li>
         <li class="no">Custom branding</li>
       </ul>
-      <a href="register.html" class="plan-btn plan-btn-outline">Get Annual Plan</a>
+      <a href="#" class="plan-btn plan-btn-outline" onclick="openModal('register');return false;">Get Annual Plan</a>
       <p class="plan-trial">Best value. Starts after trial.</p>
     </div>
-
-    <!-- One-time -->
     <div class="plan">
       <div class="plan-name">Lifetime License</div>
       <div class="plan-price"><sup>SAR</sup>1,999</div>
@@ -347,10 +629,9 @@ h1{animation-delay:.2s}
         <li>Priority support (1 year)</li>
         <li>Custom branding</li>
       </ul>
-      <a href="register.html" class="plan-btn plan-btn-outline">Buy Lifetime License</a>
+      <a href="#" class="plan-btn plan-btn-outline" onclick="openModal('register');return false;">Buy Lifetime License</a>
       <p class="plan-trial">One payment. No renewals.</p>
     </div>
-
   </div>
 </section>
 
@@ -379,7 +660,7 @@ h1{animation-delay:.2s}
   <div class="section-tag" style="justify-content:center">Ready?</div>
   <h2>14 days free.<br><em>No card. No catch.</em></h2>
   <p>Start your free trial and have Ordo running in your restaurant today.</p>
-  <a href="register.html" class="btn-primary" style="font-size:16px;padding:16px 36px">Create Free Account →</a>
+  <a href="#" class="btn-primary" style="font-size:16px;padding:16px 36px" onclick="openModal('register');return false;">Create Free Account →</a>
 </section>
 
 <!-- FOOTER -->
@@ -388,11 +669,121 @@ h1{animation-delay:.2s}
   <div class="footer-links">
     <a href="#features">Features</a>
     <a href="#pricing">Pricing</a>
-    <a href="register.html">Register</a>
-    <a href="login.html">Login</a>
+    <a href="#" onclick="openModal('register');return false;">Register</a>
+    <a href="#" onclick="openModal('signin');return false;">Sign In</a>
   </div>
   <div class="footer-copy">© 2025 Ordo POS. All rights reserved.</div>
 </footer>
 
+<script>
+// ── Modal control ─────────────────────────────────────────────────────
+function openModal(tab){
+  document.getElementById('signinBackdrop').classList.add('open');
+  document.body.style.overflow='hidden';
+  switchTab(tab||'signin');
+  clearError();
+  // focus first relevant input after animation
+  setTimeout(()=>{
+    const panel=document.getElementById('panel-'+currentTab);
+    const inp=panel.querySelector('input');
+    if(inp)inp.focus();
+  },280);
+}
+function closeModal(){
+  document.getElementById('signinBackdrop').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// ── Tab switching ─────────────────────────────────────────────────────
+let currentTab='signin';
+function switchTab(tab){
+  currentTab=tab;
+  ['signin','register'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('panel-'+t).classList.toggle('active',t===tab);
+  });
+  document.getElementById('modalSuccess').classList.remove('show');
+  clearError();
+}
+
+// ── Error / success helpers ───────────────────────────────────────────
+function showError(msg){
+  const el=document.getElementById('modalError');
+  el.textContent=msg;el.classList.add('show');
+}
+function clearError(){
+  document.getElementById('modalError').classList.remove('show');
+}
+function setLoading(id,spinId,on){
+  document.getElementById(id).disabled=on;
+  document.getElementById(spinId).style.display=on?'block':'none';
+  document.getElementById(id.replace('Btn','BtnText')).style.display=on?'none':'inline';
+}
+function showSuccess(title,sub){
+  document.getElementById('panel-signin').classList.remove('active');
+  document.getElementById('panel-register').classList.remove('active');
+  document.getElementById('modalSuccess').classList.add('show');
+  document.getElementById('successTitle').textContent=title;
+  document.getElementById('successSub').textContent=sub;
+}
+
+// ── Password strength ─────────────────────────────────────────────────
+document.getElementById('reg-pass').addEventListener('input',function(){
+  const v=this.value,len=v.length;
+  let score=0;
+  if(len>=8)score++;if(len>=12)score++;
+  if(/[A-Z]/.test(v))score++;if(/[0-9]/.test(v))score++;if(/[^A-Za-z0-9]/.test(v))score++;
+  const pct=Math.min(100,score*22);
+  const col=score<2?'#ef4444':score<4?'#f59e0b':'#10b981';
+  document.getElementById('passStrengthFill').style.width=pct+'%';
+  document.getElementById('passStrengthFill').style.background=col;
+});
+
+// ── Sign In ───────────────────────────────────────────────────────────
+async function submitSignIn(){
+  clearError();
+  const email=document.getElementById('si-email').value.trim();
+  const pass=document.getElementById('si-pass').value;
+  if(!email||!pass){showError('Please enter your email and password.');return;}
+  setLoading('signinBtn','signinSpinner',true);
+  // Simulate async auth — replace with real API call
+  await new Promise(r=>setTimeout(r,1400));
+  setLoading('signinBtn','signinSpinner',false);
+  // Demo: any credentials succeed — replace with real validation
+  if(pass.length<3){
+    showError('Incorrect email or password. Please try again.');
+    document.getElementById('si-pass').classList.add('error');
+    setTimeout(()=>document.getElementById('si-pass').classList.remove('error'),2000);
+  }else{
+    showSuccess('Welcome back','Redirecting to your dashboard…');
+    setTimeout(()=>{window.location.href='ordo_pos.html';},1200);
+  }
+}
+
+// ── Register ──────────────────────────────────────────────────────────
+async function submitRegister(){
+  clearError();
+  const fname=document.getElementById('reg-fname').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const rest=document.getElementById('reg-rest').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  if(!fname){showError('Please enter your first name.');return;}
+  if(!email||!email.includes('@')){showError('Please enter a valid email address.');return;}
+  if(!rest){showError('Please enter your restaurant name.');return;}
+  if(pass.length<8){showError('Password must be at least 8 characters.');return;}
+  setLoading('registerBtn','registerSpinner',true);
+  // Simulate async registration — replace with real API call
+  await new Promise(r=>setTimeout(r,1600));
+  setLoading('registerBtn','registerSpinner',false);
+  showSuccess('Account created — welcome!','Setting up your restaurant workspace…');
+  setTimeout(()=>{window.location.href='ordo_pos.html';},1400);
+}
+
+// ── OAuth placeholders ────────────────────────────────────────────────
+function oauthLogin(provider){
+  showError('OAuth with '+provider+' coming soon.');
+}
+</script>
 </body>
 </html>
