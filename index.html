@@ -321,6 +321,160 @@ footer{padding:40px 6%;border-top:1px solid var(--border);display:flex;justify-c
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ══════════════════════════════════════════
+   DOWNLOAD PAGE STYLES
+══════════════════════════════════════════ */
+.download-page{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:100px 20px;
+  background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 100%);
+}
+.download-container{
+  max-width:680px;
+  width:100%;
+  background:var(--ink2);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:48px 40px;
+  text-align:center;
+  animation:fadeUp .5s ease;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.download-icon{
+  font-size:72px;
+  margin-bottom:20px;
+}
+.download-title{
+  font-family:'Instrument Serif',serif;
+  font-size:36px;
+  color:var(--gold2);
+  margin-bottom:12px;
+}
+.download-sub{
+  font-size:15px;
+  color:var(--t2);
+  margin-bottom:32px;
+  line-height:1.7;
+}
+.download-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-bottom:32px;
+}
+.download-card{
+  background:var(--ink3);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:28px 20px;
+  text-align:center;
+  transition:.2s;
+  cursor:pointer;
+}
+.download-card:hover{
+  border-color:var(--gold);
+  transform:translateY(-3px);
+  background:rgba(201,168,76,.05);
+}
+.download-card-icon{
+  font-size:40px;
+  margin-bottom:16px;
+}
+.download-card-title{
+  font-weight:700;
+  font-size:16px;
+  color:var(--cream);
+  margin-bottom:8px;
+}
+.download-card-desc{
+  font-size:12px;
+  color:var(--t3);
+  margin-bottom:16px;
+}
+.download-badge{
+  display:inline-block;
+  background:var(--gold-dim);
+  padding:4px 12px;
+  border-radius:99px;
+  font-size:10px;
+  font-weight:600;
+  color:var(--gold2);
+}
+.download-instructions{
+  background:rgba(255,255,255,.03);
+  border-radius:12px;
+  padding:20px;
+  margin-top:20px;
+  text-align:left;
+}
+.download-instructions-title{
+  font-size:13px;
+  font-weight:700;
+  color:var(--gold2);
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.download-instructions-list{
+  list-style:none;
+  padding:0;
+}
+.download-instructions-list li{
+  font-size:12px;
+  color:var(--t2);
+  padding:8px 0;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.download-instructions-list li:last-child{
+  border-bottom:none;
+}
+.download-instructions-list li::before{
+  content:'→';
+  color:var(--gold);
+  font-weight:700;
+}
+.download-btn{
+  background:var(--gold);
+  color:var(--ink);
+  padding:14px 32px;
+  border:none;
+  border-radius:12px;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+  transition:.2s;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  margin-top:24px;
+  text-decoration:none;
+}
+.download-btn:hover{
+  background:var(--gold2);
+  transform:translateY(-2px);
+}
+.back-link{
+  display:inline-block;
+  margin-top:24px;
+  color:var(--t3);
+  font-size:13px;
+  text-decoration:none;
+  transition:.2s;
+}
+.back-link:hover{
+  color:var(--gold);
+}
+
 /* ── Animations ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes float{0%,100%{transform:perspective(1200px) rotateY(-8deg) rotateX(3deg) translateY(0)} 50%{transform:perspective(1200px) rotateY(-8deg) rotateX(3deg) translateY(-12px)}}
@@ -339,6 +493,8 @@ h1{animation-delay:.2s}
   .signin-modal{padding:28px 20px 24px;}
   .form-row{grid-template-columns:1fr;}
   .oauth-row{grid-template-columns:1fr;}
+  .download-options{grid-template-columns:1fr;}
+  .download-container{padding:32px 24px;}
 }
 </style>
 </head>
@@ -682,7 +838,6 @@ function openModal(tab){
   document.body.style.overflow='hidden';
   switchTab(tab||'signin');
   clearError();
-  // focus first relevant input after animation
   setTimeout(()=>{
     const panel=document.getElementById('panel-'+currentTab);
     const inp=panel.querySelector('input');
@@ -728,17 +883,125 @@ function showSuccess(title,sub){
   document.getElementById('successSub').textContent=sub;
 }
 
+// ── Navigate to download page ─────────────────────────────────────────
+function goToDownloadPage(userName){
+  // Store user info in localStorage to persist after redirect
+  localStorage.setItem('ordo_user_logged_in', 'true');
+  localStorage.setItem('ordo_user_name', userName || 'Restaurant Owner');
+  window.location.href = '#download';
+  closeModal();
+  // After a short delay, show the download page
+  setTimeout(() => {
+    showDownloadPage();
+  }, 100);
+}
+
+// ── Show download page ─────────────────────────────────────────────────
+function showDownloadPage() {
+  const mainContent = document.querySelector('body > nav, body > section, body > .proof, body > footer');
+  const downloadPageHtml = `
+    <div class="download-page" id="downloadPage">
+      <div class="download-container">
+        <div class="download-icon">🎉</div>
+        <h1 class="download-title">Welcome to Ordo!</h1>
+        <p class="download-sub">Your restaurant workspace is ready. Download the POS application to get started.</p>
+        
+        <div class="download-options">
+          <div class="download-card" onclick="downloadApp('online')">
+            <div class="download-card-icon">🌐</div>
+            <div class="download-card-title">Online / PWA Version</div>
+            <div class="download-card-desc">Install as app on any device</div>
+            <span class="download-badge">Works offline after install</span>
+          </div>
+          <div class="download-card" onclick="downloadApp('html')">
+            <div class="download-card-icon">📁</div>
+            <div class="download-card-title">HTML File (orda_saas.html)</div>
+            <div class="download-card-desc">Download for local/offline use</div>
+            <span class="download-badge">Self-contained</span>
+          </div>
+        </div>
+
+        <div class="download-instructions">
+          <div class="download-instructions-title">
+            <i class="fa fa-info-circle"></i> How to use offline:
+          </div>
+          <ul class="download-instructions-list">
+            <li>Save the HTML file to your computer or device</li>
+            <li>Open with any web browser (Chrome, Safari, Edge)</li>
+            <li>Works completely offline after first load</li>
+            <li>Data is saved locally in your browser</li>
+            <li>Share the file with your staff across devices</li>
+          </ul>
+        </div>
+
+        <button class="download-btn" onclick="downloadApp('html')">
+          ⬇️ Download ordo_saas.html
+        </button>
+        
+        <a href="#" class="back-link" onclick="goBackToSite(event)">← Back to Ordo website</a>
+      </div>
+    </div>
+  `;
+  
+  // Hide main content and show download page
+  document.querySelectorAll('nav, section, .proof, footer').forEach(el => {
+    if (el !== document.querySelector('nav')) {
+      el.style.display = 'none';
+    }
+  });
+  document.querySelector('nav').style.display = 'none';
+  
+  // Insert download page if not exists
+  if (!document.getElementById('downloadPage')) {
+    document.body.insertAdjacentHTML('beforeend', downloadPageHtml);
+  } else {
+    document.getElementById('downloadPage').style.display = 'flex';
+  }
+}
+
+function goBackToSite(event) {
+  if(event) event.preventDefault();
+  document.getElementById('downloadPage')?.remove();
+  document.querySelectorAll('nav, section, .proof, footer').forEach(el => {
+    el.style.display = '';
+  });
+  document.querySelector('nav').style.display = 'flex';
+  window.location.hash = '';
+}
+
+function downloadApp(type) {
+  if (type === 'html') {
+    // Create a link to download the POS HTML file
+    const link = document.createElement('a');
+    link.href = 'ordo_saas.html';
+    link.download = 'ordo_saas.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert('Download started! Save the file and open it in any browser to use Ordo POS offline.');
+  } else {
+    // PWA installation prompt
+    alert('For PWA installation: Open this page in Chrome/Safari, tap the share menu, then "Add to Home Screen".');
+  }
+}
+
 // ── Password strength ─────────────────────────────────────────────────
-document.getElementById('reg-pass').addEventListener('input',function(){
-  const v=this.value,len=v.length;
-  let score=0;
-  if(len>=8)score++;if(len>=12)score++;
-  if(/[A-Z]/.test(v))score++;if(/[0-9]/.test(v))score++;if(/[^A-Za-z0-9]/.test(v))score++;
-  const pct=Math.min(100,score*22);
-  const col=score<2?'#ef4444':score<4?'#f59e0b':'#10b981';
-  document.getElementById('passStrengthFill').style.width=pct+'%';
-  document.getElementById('passStrengthFill').style.background=col;
-});
+const passInput = document.getElementById('reg-pass');
+if (passInput) {
+  passInput.addEventListener('input', function(){
+    const v=this.value,len=v.length;
+    let score=0;
+    if(len>=8)score++;if(len>=12)score++;
+    if(/[A-Z]/.test(v))score++;if(/[0-9]/.test(v))score++;if(/[^A-Za-z0-9]/.test(v))score++;
+    const pct=Math.min(100,score*22);
+    const col=score<2?'#ef4444':score<4?'#f59e0b':'#10b981';
+    const fill = document.getElementById('passStrengthFill');
+    if(fill){
+      fill.style.width=pct+'%';
+      fill.style.background=col;
+    }
+  });
+}
 
 // ── Sign In ───────────────────────────────────────────────────────────
 async function submitSignIn(){
@@ -747,17 +1010,19 @@ async function submitSignIn(){
   const pass=document.getElementById('si-pass').value;
   if(!email||!pass){showError('Please enter your email and password.');return;}
   setLoading('signinBtn','signinSpinner',true);
-  // Simulate async auth — replace with real API call
   await new Promise(r=>setTimeout(r,1400));
   setLoading('signinBtn','signinSpinner',false);
-  // Demo: any credentials succeed — replace with real validation
   if(pass.length<3){
     showError('Incorrect email or password. Please try again.');
     document.getElementById('si-pass').classList.add('error');
     setTimeout(()=>document.getElementById('si-pass').classList.remove('error'),2000);
   }else{
-    showSuccess('Welcome back','Redirecting to your dashboard…');
-    setTimeout(()=>{window.location.href='ordo_pos.html';},1200);
+    // Get name from email or use default
+    const userName = email.split('@')[0];
+    showSuccess('Welcome back', 'Redirecting to download page…');
+    setTimeout(() => {
+      goToDownloadPage(userName);
+    }, 1200);
   }
 }
 
@@ -773,16 +1038,24 @@ async function submitRegister(){
   if(!rest){showError('Please enter your restaurant name.');return;}
   if(pass.length<8){showError('Password must be at least 8 characters.');return;}
   setLoading('registerBtn','registerSpinner',true);
-  // Simulate async registration — replace with real API call
   await new Promise(r=>setTimeout(r,1600));
   setLoading('registerBtn','registerSpinner',false);
-  showSuccess('Account created — welcome!','Setting up your restaurant workspace…');
-  setTimeout(()=>{window.location.href='ordo_pos.html';},1400);
+  showSuccess('Account created — welcome!', 'Setting up your restaurant workspace…');
+  setTimeout(() => {
+    goToDownloadPage(fname);
+  }, 1400);
 }
 
 // ── OAuth placeholders ────────────────────────────────────────────────
 function oauthLogin(provider){
   showError('OAuth with '+provider+' coming soon.');
+}
+
+// Check if returning from download or already logged in
+if (window.location.hash === '#download' && localStorage.getItem('ordo_user_logged_in') === 'true') {
+  setTimeout(() => {
+    showDownloadPage();
+  }, 100);
 }
 </script>
 </body>
