@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Ordo — Restaurant POS Built for Speed</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg0:#06060a;--bg1:#0b0b11;--bg2:#111119;--bg3:#17171f;--bg4:#1c1c26;
+  --au:#c8a55a;--au-lt:#e2c07e;--au-dim:rgba(200,165,90,.08);--au-mid:rgba(200,165,90,.18);--au-glow:rgba(200,165,90,.28);
+  --tx1:#f2ede4;--tx2:#8c8478;--tx3:#4a4840;--tx4:#2a2820;
+  --ln:rgba(200,165,90,.11);--ln2:rgba(255,255,255,.05);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg0);color:var(--tx1);font-family:'Outfit',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1160px;margin:0 auto;padding:0 48px;}
+@media(max-width:768px){.wrap{padding:0 24px;}}
+
+/* ── EYEBROW ── */
+.eye{display:inline-flex;align-items:center;gap:10px;font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--au);margin-bottom:18px;}
+.eye::before{content:'';width:22px;height:1px;background:var(--au);}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 22px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;border:none;transition:all .25s var(--ease-out);white-space:nowrap;letter-spacing:.1px;}
+.btn-ghost{background:transparent;color:var(--tx2);border:1px solid var(--ln2);}
+.btn-ghost:hover{color:var(--tx1);border-color:var(--ln);}
+.btn-gold{background:var(--au);color:#09080a;font-weight:600;}
+.btn-gold:hover{background:var(--au-lt);transform:translateY(-1px);box-shadow:0 8px 32px var(--au-glow);}
+.btn-gold:active{transform:translateY(0);}
+.btn-outline{background:transparent;color:var(--au);border:1px solid rgba(200,165,90,.28);font-weight:500;}
+.btn-outline:hover{background:var(--au-dim);border-color:rgba(200,165,90,.45);}
+.btn-lg{padding:14px 32px;font-size:14px;border-radius:10px;}
+
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:500;height:66px;display:flex;align-items:center;transition:background .4s,border-color .4s,backdrop-filter .4s;border-bottom:1px solid transparent;}
+.nav.sc{background:rgba(6,6,10,.9);backdrop-filter:blur(24px) saturate(160%);border-color:var(--ln);}
+.nav-in{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 48px;}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:25px;font-weight:400;color:var(--au-lt);letter-spacing:.5px;line-height:1;}
+.nav-logo sub{display:block;font-family:'Outfit',sans-serif;font-size:9px;font-weight:500;letter-spacing:2.5px;color:var(--tx3);text-transform:uppercase;margin-top:2px;vertical-align:unset;}
+.nav-links{display:flex;align-items:center;gap:34px;}
+.nav-links a{font-size:13px;color:var(--tx2);text-decoration:none;transition:color .2s;font-weight:400;}
+.nav-links a:hover{color:var(--tx1);}
+.nav-acts{display:flex;align-items:center;gap:10px;}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;align-items:center;padding:120px 48px 96px;position:relative;overflow:hidden;}
+.hero-glow{position:absolute;top:-25%;left:50%;transform:translateX(-50%);width:900px;height:600px;background:radial-gradient(ellipse,rgba(200,165,90,.055) 0%,transparent 65%);pointer-events:none;}
+.hero-line{position:absolute;bottom:0;left:48px;right:48px;height:1px;background:var(--ln);}
+.hero-grid{max-width:1160px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:48px;}.hero-visual{display:none;}}
+
+.h-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:99px;border:1px solid var(--ln);background:var(--au-dim);font-size:11px;font-weight:500;color:var(--au);letter-spacing:.4px;margin-bottom:26px;animation:fup .7s var(--ease-out) both;}
+.h-dot{width:5px;height:5px;border-radius:50%;background:var(--au);box-shadow:0 0 6px var(--au);animation:blink 2.4s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+.h1{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,5.5vw,78px);font-weight:300;line-height:1.06;letter-spacing:-1px;color:var(--tx1);margin-bottom:22px;animation:fup .7s .08s var(--ease-out) both;}
+.h1 em{font-style:italic;color:var(--au-lt);}
+.h-p{font-size:16px;color:var(--tx2);font-weight:300;line-height:1.8;max-width:420px;margin-bottom:38px;animation:fup .7s .16s var(--ease-out) both;}
+.h-ctas{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:44px;animation:fup .7s .24s var(--ease-out) both;}
+.h-stats{display:flex;gap:24px;align-items:center;animation:fup .7s .32s var(--ease-out) both;}
+.hs-item{}
+.hs-num{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--au-lt);line-height:1;}
+.hs-lbl{font-size:11px;color:var(--tx3);letter-spacing:.3px;margin-top:2px;}
+.hs-sep{width:1px;height:32px;background:var(--ln);margin-top:4px;}
+
+/* App window */
+.hero-visual{display:flex;justify-content:center;animation:fup .9s .1s var(--ease-out) both;}
+.aw{width:100%;max-width:490px;background:var(--bg2);border:1px solid var(--ln);border-radius:18px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 80px rgba(0,0,0,.65),0 0 60px rgba(200,165,90,.04);transform:perspective(1000px) rotateY(-6deg) rotateX(2deg);transition:transform .5s var(--ease-out);}
+.aw:hover{transform:perspective(1000px) rotateY(-2deg) rotateX(1deg);}
+.aw-bar{background:var(--bg1);padding:11px 15px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--ln);}
+.wdot{width:10px;height:10px;border-radius:50%;}
+.aw-lbl{margin-left:auto;font-size:11px;color:var(--tx3);letter-spacing:.5px;}
+.aw-body{padding:15px;display:flex;flex-direction:column;gap:9px;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.stat-card{background:var(--bg3);border:1px solid var(--ln2);border-radius:10px;padding:13px 11px;}
+.stat-card.hi{border-color:rgba(200,165,90,.2);}
+.sc-lbl{font-size:10px;color:var(--tx3);letter-spacing:.5px;margin-bottom:7px;}
+.sc-val{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;color:var(--au-lt);line-height:1;}
+.sc-bar{height:3px;border-radius:2px;background:var(--bg4);margin-top:7px;}
+.sc-fill{height:3px;background:var(--au);border-radius:2px;}
+.orders{display:flex;flex-direction:column;gap:6px;}
+.order{background:var(--bg3);border:1px solid var(--ln2);border-radius:9px;padding:10px 13px;display:flex;align-items:center;gap:11px;}
+.or-tbl{width:28px;height:28px;border-radius:6px;background:var(--au-dim);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--au);flex-shrink:0;}
+.or-info{flex:1;}
+.or-name{font-size:12px;font-weight:500;color:var(--tx1);}
+.or-items{font-size:11px;color:var(--tx3);}
+.or-price{font-size:13px;font-weight:600;color:var(--au-lt);}
+.or-tag{font-size:10px;font-weight:600;letter-spacing:.4px;padding:3px 8px;border-radius:99px;}
+.or-tag.r{background:rgba(34,197,94,.1);color:#86efac;}
+.or-tag.p{background:rgba(200,165,90,.1);color:var(--au);}
+.or-tag.n{background:rgba(59,130,246,.1);color:#93c5fd;}
+
+/* ── STRIP ── */
+.strip{border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);padding:34px 0;}
+.strip-in{display:flex;align-items:center;justify-content:center;gap:60px;flex-wrap:wrap;padding:0 48px;}
+.strip-name{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--tx3);transition:color .3s;white-space:nowrap;}
+.strip-name:hover{color:var(--tx2);}
+
+/* ── SECTIONS ── */
+.sec{padding:108px 0;}
+.sh{margin-bottom:60px;}
+.sh.c{text-align:center;}
+.sh.c .eye{justify-content:center;}
+.sh.c .eye::before{display:none;}
+.s2{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,56px);font-weight:300;line-height:1.1;letter-spacing:-.5px;color:var(--tx1);margin-bottom:14px;}
+.s2 em{font-style:italic;color:var(--au-lt);}
+.sp{font-size:15px;color:var(--tx2);font-weight:300;line-height:1.8;max-width:480px;}
+.sh.c .sp{margin:0 auto;}
+
+/* ── FEATURES ── */
+.feat-bg{background:var(--bg0);}
+.fg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--ln);border-radius:16px;overflow:hidden;}
+@media(max-width:900px){.fg{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.fg{grid-template-columns:1fr;}}
+.fc{padding:34px 28px;border-right:1px solid var(--ln);border-bottom:1px solid var(--ln);background:var(--bg1);transition:background .25s;position:relative;overflow:hidden;}
+.fc::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 0 0,rgba(200,165,90,.05),transparent 60%);opacity:0;transition:opacity .25s;}
+.fc:hover{background:var(--bg2);}
+.fc:hover::before{opacity:1;}
+.fc:nth-child(4n){border-right:none;}
+.fc:nth-last-child(-n+4){border-bottom:none;}
+.fi{width:42px;height:42px;border-radius:11px;background:var(--au-dim);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:16px;}
+.ft{font-size:14px;font-weight:600;color:var(--tx1);margin-bottom:7px;letter-spacing:.1px;}
+.fd{font-size:13px;color:var(--tx2);line-height:1.7;font-weight:300;}
+
+/* ── HOW ── */
+.how-bg{background:var(--bg1);border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);}
+@media(max-width:768px){.steps{grid-template-columns:repeat(2,1fr);}}
+.step{padding:48px 30px 40px;border-right:1px solid var(--ln);}
+.step:last-child{border-right:none;}
+.s-num{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:400;color:var(--au);letter-spacing:1px;margin-bottom:22px;display:flex;align-items:center;gap:10px;}
+.s-num::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--ln),transparent);}
+.s-title{font-size:14px;font-weight:600;color:var(--tx1);margin-bottom:9px;}
+.s-desc{font-size:13px;color:var(--tx2);line-height:1.7;font-weight:300;}
+
+/* ── PRICING ── */
+.pr-bg{background:var(--bg0);}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:940px;margin:0 auto;}
+@media(max-width:768px){.plans{grid-template-columns:1fr;}}
+.plan{background:var(--bg1);border:1px solid var(--ln);border-radius:16px;padding:34px 28px;position:relative;transition:transform .3s var(--ease-out);}
+.plan:hover{transform:translateY(-4px);}
+.plan.hot{background:linear-gradient(155deg,var(--bg3) 0%,var(--bg2) 100%);border-color:rgba(200,165,90,.32);box-shadow:0 0 48px rgba(200,165,90,.07),0 20px 60px rgba(0,0,0,.4);}
+.p-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--au);color:#09080a;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 14px;border-radius:99px;white-space:nowrap;}
+.p-tier{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--tx3);margin-bottom:18px;}
+.p-price{font-family:'Cormorant Garamond',serif;font-size:54px;font-weight:300;color:var(--tx1);line-height:1;letter-spacing:-2px;}
+.p-price sup{font-family:'Outfit',sans-serif;font-size:19px;font-weight:300;vertical-align:top;margin-top:9px;display:inline-block;color:var(--tx2);}
+.p-price sub{font-family:'Outfit',sans-serif;font-size:13px;font-weight:300;color:var(--tx2);vertical-align:unset;}
+.p-period{font-size:12px;color:var(--tx3);margin-bottom:26px;margin-top:4px;}
+.p-div{height:1px;background:var(--ln);margin-bottom:22px;}
+.p-list{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:28px;}
+.p-list li{font-size:13px;color:var(--tx2);font-weight:300;display:flex;align-items:flex-start;gap:9px;line-height:1.5;}
+.p-list li::before{content:'✓';color:var(--au);font-weight:600;flex-shrink:0;margin-top:1px;}
+.p-list li.off::before{content:'–';color:var(--tx4);}
+.p-list li.off{color:var(--tx3);}
+.p-note{font-size:11px;color:var(--tx3);text-align:center;margin-top:9px;}
+
+/* ── TESTIMONIALS ── */
+.testi-bg{background:var(--bg1);border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+@media(max-width:768px){.tg{grid-template-columns:1fr;}}
+.tc{background:var(--bg2);border:1px solid var(--ln);border-radius:14px;padding:28px 26px;transition:border-color .3s,transform .3s var(--ease-out);}
+.tc:hover{border-color:rgba(200,165,90,.24);transform:translateY(-3px);}
+.t-stars{color:var(--au);font-size:12px;letter-spacing:2px;margin-bottom:14px;}
+.t-q{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;font-style:italic;color:var(--tx1);line-height:1.65;margin-bottom:20px;}
+.t-auth{display:flex;align-items:center;gap:11px;}
+.t-av{width:36px;height:36px;border-radius:50%;background:var(--au-dim);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.t-name{font-size:13px;font-weight:600;color:var(--tx1);}
+.t-role{font-size:11px;color:var(--tx3);margin-top:1px;}
+
+/* ── CTA ── */
+.cta{padding:116px 48px;background:var(--bg0);text-align:center;position:relative;overflow:hidden;}
+.cta::before{content:'';position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:800px;height:500px;background:radial-gradient(ellipse,rgba(200,165,90,.05) 0%,transparent 65%);pointer-events:none;}
+.cta .s2{max-width:580px;margin:0 auto 14px;}
+.cta .sp{margin:0 auto 38px;}
+.cta-btns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+
+/* ── FOOTER ── */
+.footer{padding:38px 48px;border-top:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;}
+.f-logo{font-family:'Cormorant Garamond',serif;font-size:21px;color:var(--au-lt);}
+.f-links{display:flex;gap:26px;}
+.f-links a{font-size:12px;color:var(--tx3);text-decoration:none;transition:color .2s;}
+.f-links a:hover{color:var(--tx2);}
+.f-copy{font-size:12px;color:var(--tx3);}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(4,4,8,.87);backdrop-filter:blur(20px) saturate(120%);align-items:center;justify-content:center;padding:24px;}
+.overlay.open{display:flex;animation:ovin .2s ease both;}
+@keyframes ovin{from{opacity:0}to{opacity:1}}
+.modal{background:var(--bg2);border:1px solid var(--ln);border-radius:20px;width:100%;max-width:396px;padding:38px 34px 32px;position:relative;box-shadow:0 40px 80px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.03);animation:mdin .28s var(--ease-out) both;}
+@keyframes mdin{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mx{position:absolute;top:15px;right:15px;width:30px;height:30px;border-radius:8px;background:transparent;border:1px solid var(--ln2);color:var(--tx2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:'Outfit',sans-serif;}
+.mx:hover{background:var(--bg4);color:var(--tx1);border-color:var(--ln);}
+.m-logo{font-family:'Cormorant Garamond',serif;font-size:27px;font-weight:300;color:var(--au-lt);letter-spacing:.5px;margin-bottom:3px;}
+.m-tag{font-size:12px;color:var(--tx3);margin-bottom:26px;font-weight:300;}
+.m-tabs{display:flex;background:var(--bg1);border-radius:10px;padding:4px;margin-bottom:26px;gap:3px;}
+.m-tab{flex:1;padding:9px;border-radius:7px;background:transparent;border:none;color:var(--tx2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
+.m-tab.on{background:var(--bg3);color:var(--tx1);box-shadow:0 1px 4px rgba(0,0,0,.4);}
+.fpanel{display:none;}
+.fpanel.on{display:block;}
+.fg2{margin-bottom:13px;}
+.fl{display:block;font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px;}
+.fi2{width:100%;padding:11px 13px;background:var(--bg1);border:1px solid var(--ln2);border-radius:9px;color:var(--tx1);font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s,background .2s;}
+.fi2::placeholder{color:var(--tx3);}
+.fi2:focus{border-color:rgba(200,165,90,.4);background:rgba(200,165,90,.03);box-shadow:0 0 0 3px rgba(200,165,90,.07);}
+.fi2.bad{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.04);}
+.f2row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fforgot{display:block;text-align:right;font-size:12px;color:var(--tx3);cursor:pointer;margin-top:5px;transition:color .2s;border:none;background:none;font-family:'Outfit',sans-serif;}
+.fforgot:hover{color:var(--au);}
+.ferr{display:none;padding:10px 13px;border-radius:9px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18);color:#fca5a5;font-size:12px;margin-bottom:13px;line-height:1.5;}
+.ferr.on{display:block;}
+.fok{display:none;padding:10px 13px;border-radius:9px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.16);color:#86efac;font-size:12px;margin-bottom:13px;}
+.fok.on{display:block;}
+.fsub{width:100%;padding:13px;border-radius:9px;background:var(--au);color:#09080a;border:none;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s var(--ease-out);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+.fsub:hover{background:var(--au-lt);transform:translateY(-1px);box-shadow:0 6px 24px var(--au-glow);}
+.fsub:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.fdiv{display:flex;align-items:center;gap:11px;margin:17px 0;font-size:11px;color:var(--tx3);}
+.fdiv::before,.fdiv::after{content:'';flex:1;height:1px;background:var(--ln);}
+.og{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ob{padding:10px 13px;border-radius:9px;border:1px solid var(--ln2);background:var(--bg1);color:var(--tx2);font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
+.ob:hover{background:var(--bg3);color:var(--tx1);border-color:var(--ln);}
+.ob svg{width:15px;height:15px;flex-shrink:0;}
+.m-foot{text-align:center;margin-top:18px;font-size:12px;color:var(--tx3);font-weight:300;line-height:1.7;}
+.m-foot a{color:var(--au);text-decoration:none;cursor:pointer;}
+.m-foot a:hover{color:var(--au-lt);}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid rgba(9,8,10,.2);border-top-color:#09080a;animation:spinr .65s linear infinite;display:none;}
+@keyframes spinr{to{transform:rotate(360deg)}}
+
+/* ── DOWNLOAD PAGE ── */
+#dl{display:none;min-height:100vh;background:var(--bg0);position:relative;}
+#dl.on{display:block;}
+.dl-glow{position:fixed;top:0;left:50%;transform:translateX(-50%);width:800px;height:420px;background:radial-gradient(ellipse at 50% 0%,rgba(200,165,90,.055) 0%,transparent 65%);pointer-events:none;z-index:0;}
+.dl-bar{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;display:flex;align-items:center;padding:0 48px;justify-content:space-between;background:rgba(6,6,10,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--ln);}
+.dl-logo{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--au-lt);}
+.dl-right{display:flex;align-items:center;gap:14px;}
+.dl-uinfo{text-align:right;}
+.dl-uname{font-size:13px;font-weight:500;color:var(--tx1);}
+.dl-uemail{font-size:11px;color:var(--tx3);}
+.dl-av{width:34px;height:34px;border-radius:50%;background:var(--au-dim);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--au-lt);flex-shrink:0;overflow:hidden;}
+.dl-av img{width:34px;height:34px;object-fit:cover;}
+.dl-so{background:transparent;border:1px solid var(--ln);color:var(--tx3);padding:7px 13px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.dl-so:hover{color:var(--au);border-color:rgba(200,165,90,.28);}
+
+.dl-body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:98px 24px 56px;position:relative;z-index:1;}
+.dl-wrap{width:100%;max-width:680px;animation:fup .5s var(--ease-out) both;}
+.dl-head{text-align:center;margin-bottom:50px;}
+.dl-greet{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--au);margin-bottom:12px;}
+.dl-h{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,5vw,54px);font-weight:300;color:var(--tx1);letter-spacing:-.5px;line-height:1.1;margin-bottom:12px;}
+.dl-h em{font-style:italic;color:var(--au-lt);}
+.dl-sub{font-size:15px;color:var(--tx2);font-weight:300;line-height:1.8;max-width:440px;margin:0 auto;}
+
+.dl-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+@media(max-width:540px){.dl-cards{grid-template-columns:1fr;}}
+.dl-card{background:var(--bg1);border:1px solid var(--ln);border-radius:18px;padding:34px 26px;display:flex;flex-direction:column;align-items:center;text-align:center;cursor:pointer;text-decoration:none;transition:all .3s var(--ease-out);position:relative;overflow:hidden;}
+.dl-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,165,90,.055),transparent 65%);opacity:0;transition:opacity .3s;}
+.dl-card:hover{border-color:rgba(200,165,90,.32);transform:translateY(-5px);box-shadow:0 24px 64px rgba(0,0,0,.5),0 0 0 1px rgba(200,165,90,.08);background:var(--bg2);}
+.dl-card:hover::after{opacity:1;}
+.dl-icon{width:72px;height:72px;border-radius:20px;background:var(--au-dim);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:20px;transition:all .3s;position:relative;z-index:1;}
+.dl-card:hover .dl-icon{background:rgba(200,165,90,.14);border-color:rgba(200,165,90,.28);}
+.dl-ctitle{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:400;color:var(--tx1);margin-bottom:9px;position:relative;z-index:1;}
+.dl-cdesc{font-size:13px;color:var(--tx2);font-weight:300;line-height:1.7;margin-bottom:20px;position:relative;z-index:1;}
+.dl-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.3px;border:1px solid;position:relative;z-index:1;}
+.dl-tag.gold{background:var(--au-dim);border-color:rgba(200,165,90,.22);color:var(--au);}
+.dl-tag.green{background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.18);color:#86efac;}
+
+.dl-how{background:var(--bg1);border:1px solid var(--ln);border-radius:14px;overflow:hidden;}
+.dl-how-h{padding:15px 22px;border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:9px;font-size:11px;font-weight:600;color:var(--au);letter-spacing:1.5px;text-transform:uppercase;}
+.dl-row{display:flex;align-items:flex-start;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;color:var(--tx2);font-weight:300;line-height:1.65;}
+.dl-row:last-child{border-bottom:none;}
+.dl-n{width:21px;height:21px;border-radius:50%;flex-shrink:0;background:var(--au-dim);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--au);margin-top:2px;}
+.dl-row strong{color:var(--tx1);font-weight:500;}
+.dl-row code{font-family:monospace;font-size:12px;color:var(--au);background:var(--au-dim);padding:1px 6px;border-radius:4px;}
+
+/* ── ANIMATIONS ── */
+@keyframes fup{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease-out),transform .7s var(--ease-out);}
+.rv.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ LANDING ════════════════════ -->
+<div id="landing">
+
+<nav class="nav" id="nav">
+  <div class="nav-in">
+    <div class="nav-logo">Ordo <sub>Point of Sale</sub></div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#reviews">Reviews</a>
+    </div>
+    <div class="nav-acts">
+      <button class="btn btn-ghost" onclick="openModal()">Sign in</button>
+      <button class="btn btn-gold" onclick="openModal('signup')">Get started free</button>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-line"></div>
+  <div class="hero-grid">
+    <div>
+      <div class="h-badge"><span class="h-dot"></span>Version 3.4 &nbsp;·&nbsp; Now available</div>
+      <h1 class="h1">The POS that keeps up<br>with your <em>busiest nights</em></h1>
+      <p class="h-p">Ordo handles orders, tables, inventory and staff — so your team can focus entirely on hospitality.</p>
+      <div class="h-ctas">
+        <button class="btn btn-gold btn-lg" onclick="openModal('signup')">Start free trial</button>
+        <a href="#features" class="btn btn-ghost btn-lg">Explore features ↓</a>
+      </div>
+      <div class="h-stats">
+        <div class="hs-item"><div class="hs-num">4,200+</div><div class="hs-lbl">Restaurants</div></div>
+        <div class="hs-sep"></div>
+        <div class="hs-item"><div class="hs-num">98%</div><div class="hs-lbl">Uptime SLA</div></div>
+        <div class="hs-sep"></div>
+        <div class="hs-item"><div class="hs-num">4.9 ★</div><div class="hs-lbl">App rating</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="aw">
+        <div class="aw-bar">
+          <div class="wdot" style="background:#ff5f57"></div>
+          <div class="wdot" style="background:#febc2e"></div>
+          <div class="wdot" style="background:#28c840"></div>
+          <span class="aw-lbl">Ordo POS · Live</span>
+        </div>
+        <div class="aw-body">
+          <div class="stat-row">
+            <div class="stat-card hi"><div class="sc-lbl">Revenue today</div><div class="sc-val">£2,418</div><div class="sc-bar"><div class="sc-fill" style="width:72%"></div></div></div>
+            <div class="stat-card"><div class="sc-lbl">Covers</div><div class="sc-val">84</div><div class="sc-bar"><div class="sc-fill" style="width:60%"></div></div></div>
+            <div class="stat-card"><div class="sc-lbl">Avg. spend</div><div class="sc-val">£28</div><div class="sc-bar"><div class="sc-fill" style="width:48%"></div></div></div>
+          </div>
+          <div class="orders">
+            <div class="order"><div class="or-tbl">T4</div><div class="or-info"><div class="or-name">Pasta Carbonara ×2</div><div class="or-items">+ Tiramisu · 2 Espresso</div></div><div class="or-price">£54</div><div class="or-tag r">Ready</div></div>
+            <div class="order"><div class="or-tbl">T7</div><div class="or-info"><div class="or-name">Steak Frites ×3</div><div class="or-items">+ Crème brûlée · House wine</div></div><div class="or-price">£118</div><div class="or-tag p">Prep</div></div>
+            <div class="order"><div class="or-tbl">T2</div><div class="or-info"><div class="or-name">Seafood Risotto ×2</div><div class="or-items">+ Bread basket · Sparkling</div></div><div class="or-price">£76</div><div class="or-tag n">New</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="strip-in">
+    <div class="strip-name">Trattoria Sole</div>
+    <div class="strip-name">The Grill House</div>
+    <div class="strip-name">Spice Route</div>
+    <div class="strip-name">Maison Laurent</div>
+    <div class="strip-name">Harbour Table</div>
+    <div class="strip-name">Le Petit Bistro</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="sec feat-bg" id="features">
+  <div class="wrap">
+    <div class="sh rv"><div class="eye">Everything you need</div><h2 class="s2">Built for the floor,<br><em>not the back office</em></h2><p class="sp">Every feature designed around speed, reliability and how real kitchens work under pressure.</p></div>
+    <div class="fg rv">
+      <div class="fc"><div class="fi">⚡</div><div class="ft">Instant Order Entry</div><div class="fd">Take orders table-side in under 10 seconds. Smart modifiers auto-suggest the most common customisations.</div></div>
+      <div class="fc"><div class="fi">🗺️</div><div class="ft">Table Management</div><div class="fd">Drag-and-drop floor plan. See status, covers and time-at-table at a glance across every section.</div></div>
+      <div class="fc"><div class="fi">🍳</div><div class="ft">Kitchen Display</div><div class="fd">Wireless KDS shows orders in real time. Bump, prioritise and notify the floor with one tap.</div></div>
+      <div class="fc"><div class="fi">📦</div><div class="ft">Inventory Tracking</div><div class="fd">Automatic stock deduction per sale. Low-stock alerts before service. Waste logging built in.</div></div>
+      <div class="fc"><div class="fi">💳</div><div class="ft">Split Payments</div><div class="fd">Split by seat, by item or custom amount. Card, cash, QR and digital wallets simultaneously.</div></div>
+      <div class="fc"><div class="fi">📊</div><div class="ft">Live Analytics</div><div class="fd">Revenue, covers, avg. spend and top sellers — updating live so you can react mid-service.</div></div>
+      <div class="fc"><div class="fi">👥</div><div class="ft">Staff Management</div><div class="fd">Clock-in/out, role permissions, tips allocation and shift reports in one place.</div></div>
+      <div class="fc"><div class="fi">🔌</div><div class="ft">Works Offline</div><div class="fd">Full functionality with no internet. Orders sync automatically the moment connection resumes.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="sec how-bg" id="how">
+  <div class="wrap">
+    <div class="sh c rv"><div class="eye">Simple setup</div><h2 class="s2">Up and running in<br><em>one afternoon</em></h2><p class="sp">No engineers, no consultants, no three-week onboarding. Just you and a browser.</p></div>
+    <div class="steps rv">
+      <div class="step"><div class="s-num">01</div><div class="s-title">Create your account</div><div class="s-desc">Sign up free in 30 seconds. No credit card required for your 60-day trial.</div></div>
+      <div class="step"><div class="s-num">02</div><div class="s-title">Build your menu</div><div class="s-desc">Import a spreadsheet or build from scratch. Categories, modifiers and photos in minutes.</div></div>
+      <div class="step"><div class="s-num">03</div><div class="s-title">Design your floor</div><div class="s-desc">Drag tables onto your floor plan. Assign sections to servers. Ready for service.</div></div>
+      <div class="step"><div class="s-num">04</div><div class="s-title">Take your first order</div><div class="s-desc">Open Ordo on any tablet or download the desktop file. Start service immediately.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec pr-bg" id="pricing">
+  <div class="wrap">
+    <div class="sh c rv"><div class="eye">Transparent pricing</div><h2 class="s2">One price,<br><em>no surprises</em></h2><p class="sp">No per-transaction fees. No hidden add-ons. Pay for seats and keep every cent of your revenue.</p></div>
+    <div class="plans rv">
+      <div class="plan">
+        <div class="p-tier">Starter</div>
+        <div class="p-price"><sup>$</sup>49<sub>/mo</sub></div>
+        <div class="p-period">per terminal · billed monthly</div>
+        <div class="p-div"></div>
+        <ul class="p-list"><li>Up to 2 terminals</li><li>Full POS & table management</li><li>Kitchen display integration</li><li>Basic inventory tracking</li><li class="off">Advanced analytics</li><li class="off">Multi-location</li></ul>
+        <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openModal('signup')">Start free trial</button>
+        <div class="p-note">60 days free · no card needed</div>
+      </div>
+      <div class="plan hot">
+        <div class="p-badge">MOST POPULAR</div>
+        <div class="p-tier">Professional</div>
+        <div class="p-price"><sup>$</sup>89<sub>/mo</sub></div>
+        <div class="p-period">per terminal · billed monthly</div>
+        <div class="p-div"></div>
+        <ul class="p-list"><li>Unlimited terminals</li><li>Full POS & table management</li><li>Kitchen display integration</li><li>Advanced inventory & waste log</li><li>Live analytics dashboard</li><li>Staff management & tips</li></ul>
+        <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="openModal('signup')">Start free trial</button>
+        <div class="p-note">60 days free · no card needed</div>
+      </div>
+      <div class="plan">
+        <div class="p-tier">Enterprise</div>
+        <div class="p-price" style="font-size:40px;padding-top:7px">Custom</div>
+        <div class="p-period">volume pricing · annual billing</div>
+        <div class="p-div"></div>
+        <ul class="p-list"><li>Everything in Professional</li><li>Multi-location management</li><li>Custom integrations & API</li><li>SLA & priority support</li><li>Dedicated onboarding</li><li>On-site hardware setup</li></ul>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="openModal()">Contact sales</button>
+        <div class="p-note">From 5 locations</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="sec testi-bg" id="reviews">
+  <div class="wrap">
+    <div class="sh c rv"><div class="eye">From our customers</div><h2 class="s2">Trusted by<br><em>real restaurants</em></h2><p class="sp">From single-outlet cafés to multi-site groups — here's what operators say after switching.</p></div>
+    <div class="tg rv">
+      <div class="tc"><div class="t-stars">★★★★★</div><div class="t-q">"We cut average order time by 40%. Saturday service used to be chaos — now it's almost enjoyable."</div><div class="t-auth"><div class="t-av">🍝</div><div><div class="t-name">Marco Pellegrini</div><div class="t-role">Owner · Trattoria Sole, Milan</div></div></div></div>
+      <div class="tc"><div class="t-stars">★★★★★</div><div class="t-q">"The offline mode alone saved us three times last month. Internet goes down — Ordo just keeps going."</div><div class="t-auth"><div class="t-av">🍱</div><div><div class="t-name">Priya Nair</div><div class="t-role">Operations Manager · Spice Route, London</div></div></div></div>
+      <div class="tc"><div class="t-stars">★★★★★</div><div class="t-q">"Switched from our old system in one afternoon. My staff were taking real orders within the hour."</div><div class="t-auth"><div class="t-av">🥩</div><div><div class="t-name">James Holloway</div><div class="t-role">Head Chef · The Grill House, Dublin</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta">
+  <div class="eye" style="justify-content:center;margin-bottom:16px">Get started today</div>
+  <h2 class="s2">Ready for a <em>faster service?</em></h2>
+  <p class="sp" style="text-align:center;margin:0 auto 38px">Join 4,200+ restaurants. 60 days free, no credit card, no commitment.</p>
+  <div class="cta-btns">
+    <button class="btn btn-gold btn-lg" onclick="openModal('signup')">Create your free account</button>
+    <button class="btn btn-ghost btn-lg" onclick="openModal()">Sign in to existing account</button>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="f-logo">Ordo</div>
+  <div class="f-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Support</a><a href="#">Status</a></div>
+  <div class="f-copy">© 2025 Ordo Technologies Ltd.</div>
+</footer>
+
+</div><!-- /landing -->
+
+
+<!-- ════════════════════ AUTH MODAL ════════════════════ -->
+<div class="overlay" id="authOverlay">
+  <div class="modal">
+    <button class="mx" onclick="closeModal()">✕</button>
+    <div class="m-logo">Ordo</div>
+    <div class="m-tag">Restaurant management built for speed</div>
+    <div class="m-tabs">
+      <button class="m-tab on" id="t-signin" onclick="switchTab('signin')">Sign in</button>
+      <button class="m-tab" id="t-signup" onclick="switchTab('signup')">Create account</button>
+    </div>
+
+    <!-- Sign In -->
+    <div class="fpanel on" id="p-signin">
+      <div class="ferr" id="err-si"></div>
+      <div class="fok"  id="ok-si"></div>
+      <div class="fg2"><label class="fl">Email</label><input class="fi2" id="si-email" type="email" placeholder="you@restaurant.com" autocomplete="email"/></div>
+      <div class="fg2"><label class="fl">Password</label><input class="fi2" id="si-pass" type="password" placeholder="••••••••" autocomplete="current-password"/><button class="fforgot" onclick="doForgot()">Forgot password?</button></div>
+      <button class="fsub" id="btn-si" onclick="doSignIn()"><span id="si-lbl">Sign in to Ordo</span><div class="spin" id="si-spin"></div></button>
+      <div class="fdiv">or continue with</div>
+      <div class="og">
+        <button class="ob" onclick="doGoogle()"><svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</button>
+        <button class="ob" style="opacity:.32;pointer-events:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.164 6.839 9.489.5.09.682-.218.682-.484 0-.236-.009-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.114 2.504.337 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .268.18.58.688.482A10.019 10.019 0 0022 12c0-5.523-4.477-10-10-10z"/></svg>GitHub</button>
+      </div>
+    </div>
+
+    <!-- Sign Up -->
+    <div class="fpanel" id="p-signup">
+      <div class="ferr" id="err-su"></div>
+      <div class="f2row">
+        <div class="fg2"><label class="fl">First name</label><input class="fi2" id="su-fname" type="text" placeholder="Marco" autocomplete="given-name"/></div>
+        <div class="fg2"><label class="fl">Last name</label><input class="fi2" id="su-lname" type="text" placeholder="Rossi" autocomplete="family-name"/></div>
+      </div>
+      <div class="fg2"><label class="fl">Email</label><input class="fi2" id="su-email" type="email" placeholder="you@restaurant.com" autocomplete="email"/></div>
+      <div class="fg2"><label class="fl">Password</label><input class="fi2" id="su-pass" type="password" placeholder="Min. 8 characters" autocomplete="new-password"/></div>
+      <button class="fsub" id="btn-su" onclick="doSignUp()"><span id="su-lbl">Create my account</span><div class="spin" id="su-spin"></div></button>
+      <div class="fdiv">or continue with</div>
+      <div class="og">
+        <button class="ob" onclick="doGoogle()"><svg viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</button>
+        <button class="ob" style="opacity:.32;pointer-events:none"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.164 6.839 9.489.5.09.682-.218.682-.484 0-.236-.009-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.114 2.504.337 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .268.18.58.688.482A10.019 10.019 0 0022 12c0-5.523-4.477-10-10-10z"/></svg>GitHub</button>
+      </div>
+      <div class="m-foot">By creating an account you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════ DOWNLOAD PAGE ════════════════════ -->
+<div id="dl">
+  <div class="dl-glow"></div>
+  <div class="dl-bar">
+    <div class="dl-logo">Ordo</div>
+    <div class="dl-right">
+      <div class="dl-uinfo"><div class="dl-uname" id="dl-name">—</div><div class="dl-uemail" id="dl-email">—</div></div>
+      <div class="dl-av" id="dl-av">?</div>
+      <button class="dl-so" onclick="doSignOut()">Sign out</button>
+    </div>
+  </div>
+  <div class="dl-body">
+    <div class="dl-wrap">
+      <div class="dl-head">
+        <div class="dl-greet">Welcome to Ordo</div>
+        <h1 class="dl-h">You're in. <em>Choose how<br>you'd like to run Ordo.</em></h1>
+        <p class="dl-sub">Use the cloud app in your browser, or download for full offline capability during service.</p>
+      </div>
+      <div class="dl-cards">
+        <a class="dl-card" href="ordo_saas.html">
+          <div class="dl-icon">🌐</div>
+          <div class="dl-ctitle">Open Web App</div>
+          <div class="dl-cdesc">Launch Ordo directly in your browser. Always up-to-date, nothing to install. Works on any device.</div>
+          <div class="dl-tag green">✓ &nbsp;Opens instantly</div>
+        </a>
+        <div class="dl-card" onclick="doDownload()">
+          <div class="dl-icon">💾</div>
+          <div class="dl-ctitle">Download Offline</div>
+          <div class="dl-cdesc">Save Ordo to your device. Full functionality even when your internet drops mid-service.</div>
+          <div class="dl-tag gold">↓ &nbsp;Download for offline use</div>
+        </div>
+      </div>
+      <div class="dl-how">
+        <div class="dl-how-h"><span>💡</span> How to use the offline version</div>
+        <div class="dl-row"><div class="dl-n">1</div><div>Click <strong>Download Offline</strong> above — your browser saves <code>ordo_saas.html</code> to your Downloads folder.</div></div>
+        <div class="dl-row"><div class="dl-n">2</div><div><strong>Move the file</strong> to your Desktop or a dedicated folder for easy access each shift.</div></div>
+        <div class="dl-row"><div class="dl-n">3</div><div><strong>Double-click</strong> to open in Chrome or Edge — no internet required once downloaded.</div></div>
+        <div class="dl-row"><div class="dl-n">4</div><div><strong>Bookmark it</strong> in your browser or pin it to your taskbar for one-click access during service.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════ FIREBASE ════════════════════ -->
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged,sendPasswordResetEmail,updateProfile}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,doc,setDoc,getDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app=initializeApp({apiKey:"AIzaSyDTzLb-bqmZiNB0G0W4WTRGseMM37GUcpI",authDomain:"pos-ordo.firebaseapp.com",projectId:"pos-ordo",storageBucket:"pos-ordo.firebasestorage.app",messagingSenderId:"575923763514",appId:"1:575923763514:web:f81283d99aafd2460f3803",measurementId:"G-PND9FKHRVF"});
+const auth=getAuth(app),db=getFirestore(app),gp=new GoogleAuthProvider();
+
+onAuthStateChanged(auth,async u=>{
+  if(u){
+    try{const r=doc(db,"users",u.uid);if(!(await getDoc(r)).exists())await setDoc(r,{name:u.displayName||"",email:u.email,createdAt:serverTimestamp(),plan:"trial"});}catch(_){}
+    showDL(u);
+  }else{showLand();}
+});
+
+function showDL(u){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('authOverlay').classList.remove('open');
+  document.getElementById('dl').classList.add('on');
+  const name=u.displayName||u.email.split('@')[0];
+  document.getElementById('dl-name').textContent=name;
+  document.getElementById('dl-email').textContent=u.email;
+  const av=document.getElementById('dl-av');
+  av.innerHTML=u.photoURL?`<img src="${u.photoURL}" alt="av"/>`:name[0].toUpperCase();
+}
+function showLand(){
+  document.getElementById('landing').style.display='block';
+  document.getElementById('dl').classList.remove('on');
+}
+
+window.doSignIn=async()=>{
+  const e=document.getElementById('si-email').value.trim(),p=document.getElementById('si-pass').value;
+  clearMsg('si');if(!e||!p){showErr('err-si','Please fill in all fields.');return;}
+  load('si',true);try{await signInWithEmailAndPassword(auth,e,p);}catch(ex){load('si',false);showErr('err-si',fr(ex.code));}
+};
+window.doSignUp=async()=>{
+  const fn=document.getElementById('su-fname').value.trim(),ln=document.getElementById('su-lname').value.trim(),e=document.getElementById('su-email').value.trim(),p=document.getElementById('su-pass').value;
+  clearMsg('su');if(!fn||!e||!p){showErr('err-su','Please fill in all required fields.');return;}
+  if(p.length<8){showErr('err-su','Password must be at least 8 characters.');return;}
+  load('su',true);try{const c=await createUserWithEmailAndPassword(auth,e,p);await updateProfile(c.user,{displayName:`${fn} ${ln}`.trim()});}catch(ex){load('su',false);showErr('err-su',fr(ex.code));}
+};
+window.doGoogle=async()=>{try{await signInWithPopup(auth,gp);}catch(ex){const el=document.querySelector('.fpanel.on .ferr');if(el)showErr(el.id,fr(ex.code));}};
+window.doForgot=async()=>{
+  const e=document.getElementById('si-email').value.trim();clearMsg('si');
+  if(!e){showErr('err-si','Enter your email above first.');return;}
+  try{await sendPasswordResetEmail(auth,e);const ok=document.getElementById('ok-si');ok.textContent='✓ Reset link sent — check your inbox.';ok.classList.add('on');}catch(ex){showErr('err-si',fr(ex.code));}
+};
+window.doSignOut=()=>signOut(auth);
+window.doDownload=()=>{const a=document.createElement('a');a.href='ordo_saas.html';a.download='ordo_saas.html';a.click();};
+
+function load(id,on){
+  const btn=document.getElementById('btn-'+id);
+  btn.disabled=on;
+  document.getElementById(id+'-lbl').style.display=on?'none':'';
+  document.getElementById(id+'-spin').style.display=on?'block':'none';
+}
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('on');}
+function clearMsg(id){['err-'+id,'ok-'+id].forEach(i=>{const el=document.getElementById(i);if(el){el.classList.remove('on');el.textContent='';} });}
+function fr(c){return({'auth/user-not-found':'No account found with that email.','auth/wrong-password':'Incorrect password. Try again.','auth/invalid-credential':'Invalid email or password.','auth/email-already-in-use':'An account with that email already exists.','auth/weak-password':'Password must be at least 8 characters.','auth/invalid-email':'Please enter a valid email address.','auth/too-many-requests':'Too many attempts. Please wait a moment.','auth/popup-closed-by-user':'Sign-in popup was closed.','auth/network-request-failed':'Network error. Check your connection.'})[c]||'Something went wrong. Please try again.';}
+</script>
+
+<script>
+function openModal(tab){document.getElementById('authOverlay').classList.add('open');if(tab)switchTab(tab);}
+function closeModal(){document.getElementById('authOverlay').classList.remove('open');}
+function switchTab(tab){
+  ['signin','signup'].forEach(t=>{
+    document.getElementById('t-'+t).classList.toggle('on',t===tab);
+    document.getElementById('p-'+t).classList.toggle('on',t===tab);
+  });
+  document.querySelectorAll('.ferr,.fok').forEach(e=>{e.classList.remove('on');e.textContent='';});
+}
+document.getElementById('authOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('sc',scrollY>40));
+const ro=new IntersectionObserver(entries=>{entries.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');ro.unobserve(en.target);}});},{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>ro.observe(el));
+</script>
+</body>
+</html>
